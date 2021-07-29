@@ -37,7 +37,17 @@ void write_grid(vector<vector<int>> &v, string f) {
 	}
 }
 
-float gen(int i) {
+vector<int> erase_duplicates(vector<int> &v) {
+	vector<int> d;
+	for (int x : v) {
+		if (count(v.begin(), v.end(), x) == 1) {
+			d.push_back(x);
+		}
+	}
+	return d;
+}
+
+int gen(int i) {
 	// return random number, limited by a number, i
 	srand(time(0));
 	return rand() % i;
@@ -54,8 +64,9 @@ void print_2d_vector(vector<vector<int>> v) {
 
 void print_vector(vector<int> &v) {
 	for (int i = 0; i < v.size(); i++) {
-		cout << v[i] << endl;
+		cout << v[i] << " ";
 	}
+	cout << endl;
 }
 
 
@@ -108,15 +119,17 @@ int sudoku(vector<vector<int>> &v) {
 			if (v[i][j] == 0) {
 				col.clear();
 				get_column(col, v, j);
+				print_vector(col);
 				concatenate(new_vector, def);
 				concatenate(new_vector, col);
 				concatenate(new_vector, row);
-				// delete elements with more than one occurence
-				print_vector(new_vector);
-				return 0;
-				v[i][j] = new_vector[gen(new_vector.size())];
+				vector<int> final_vector = erase_duplicates(new_vector);
+				new_vector.clear();
+				// v[i][j] = new_vector[gen(new_vector.size())];
+				v[i][j] = final_vector[0];
 			}
 		}
+		return 0;
 	}
 	return 0;
 }
