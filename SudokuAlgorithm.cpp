@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -41,8 +42,7 @@ vector<int> get_block(vector<vector<int>> v, int i, int j) {
 	vector<int> b;
 	for (int k = div_three(i); k < div_three(i+3); k++) {
 		for (int l = div_three(j); l < div_three(j+3); l++) {
-			b.push_back(v[i][j]);
-			cout << v[i][j] << endl;
+			b.push_back(v[k][l]);
 		}
 	}
 	return b;
@@ -69,7 +69,7 @@ vector<int> get_row(vector<vector<int>> v, int i) {
 void print_2d_vector(vector<vector<int>> v) {
 	for (int i = 0; i < num_rows; i++) {
 		for (int j = 0; j < num_rows; j++) {
-			cout << v[i][j];
+			cout << v[i][j] << "  ";
 		}
 		cout << endl;
 	}
@@ -87,7 +87,7 @@ bool prompt(bool p, vector<vector<int>> v) {
 	// open file
 	ofstream file_write(file, std::ofstream::out);
 	if (file_write.is_open()) {
-		p ? file_write << "Enter known values, save, and close." << "\n" : file_write << "One possible solution is:" << "\n";
+		p ? file_write << "Replaces spaces with known values, save, and close." << "\n" : file_write << "One possible solution is:" << "\n";
 		for (int i = 0; i < num_rows; i++) {
 			for (int j = 0; j < num_rows; j++) {
 				p ? file_write << "[ ]" : file_write << '[' << v[i][j] << ']';
@@ -107,7 +107,9 @@ bool prompt(bool p, vector<vector<int>> v) {
 
 // sudoku algorithm
 int sudoku(vector<vector<int>> &v) {
+	srand(unsigned(time(0)));
 	vector<int> def{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	random_shuffle(def.begin(), def.end());
 	vector<int> block;
 	vector<int> col;
 	vector<int> row;
@@ -119,7 +121,6 @@ int sudoku(vector<vector<int>> &v) {
 				row.clear();
 				col.clear();
 				block = get_block(v, i, j);
-				print_vector(block);
 				row = get_row(v, i);
 				col = get_column(v, j);
 				concatenate(temp, def);
@@ -128,14 +129,27 @@ int sudoku(vector<vector<int>> &v) {
 				concatenate(temp, row);
 				temp = erase_duplicates(temp);
 				print_vector(temp);
-				if (i == 1 && j == 7) {
+				
+				
+				
+				if (i == 5 && j == 2) {
 					return 1;
 				}
-				v[i][j] = temp[0];
+				
+				
+				i % 2 == 0 ? v[i][j] = temp[0] : v[i][j] = temp[temp.size()-1];
 			}
 		}
 	}
 	return 0;
+}
+
+bool swap(vector<int> b, vector<int> c, vector<int> &r, int j) {
+	bool legal = false;
+	for (int i = 0; i < j; i++) {
+		retun false;
+	}
+	return legal;
 }
 
 void write_grid(vector<vector<int>> &v, string f) {
