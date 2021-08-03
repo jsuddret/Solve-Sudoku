@@ -66,6 +66,26 @@ vector<int> get_row(vector<vector<int>> v, int i) {
 	return r;
 }
 
+void fill_grid(vector<vector<int>> &v, vector<vector<int>> s) {
+	srand(unsigned(time(0)));
+	vector<int> row;
+	for (int i = 0; i < num_rows; i++) {
+		for (int j = 0; j < num_rows; j++) {
+			if (!s[i][j]) {
+				vector<int> def{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+				random_shuffle(def.begin(), def.end());
+				vector<int> temp{0};
+				row.clear();
+				row = get_row(v, i);
+				concatenate(temp, def);
+				concatenate(temp, row);
+				temp = erase_duplicates(temp);
+				i % 2 == 0 ? v[i][j] = temp[temp.size()-1] : v[i][j] = temp[0];
+			}
+		}
+	}
+}
+
 void print_2d_vector(vector<vector<int>> v) {
 	for (int i = 0; i < num_rows; i++) {
 		for (int j = 0; j < num_rows; j++) {
@@ -105,54 +125,49 @@ bool prompt(bool p, vector<vector<int>> v) {
 	return false;
 }
 
-// sudoku algorithm
-int sudoku(vector<vector<int>> &v) {
-	srand(unsigned(time(0)));
-	vector<int> def{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-	random_shuffle(def.begin(), def.end());
-	vector<int> block;
-	vector<int> col;
-	vector<int> row;
-	for (int i = 0; i < num_rows; i++) {
-		for (int j = 0; j < num_rows; j++) {
-			if (v[i][j] == 0) {
-				vector<int> temp{0};
-				block.clear();
-				row.clear();
-				col.clear();
-				block = get_block(v, i, j);
-				row = get_row(v, i);
-				col = get_column(v, j);
-				concatenate(temp, def);
-				concatenate(temp, block);
-				concatenate(temp, col);
-				concatenate(temp, row);
-				temp = erase_duplicates(temp);
-				print_vector(temp);
-				
-				
-				
-				if (i == 5 && j == 2) {
-					return 1;
-				}
-				
-				
-				i % 2 == 0 ? v[i][j] = temp[0] : v[i][j] = temp[temp.size()-1];
+void swap_elements(vector<int> &v, int x1, int x2) {
+	vector<int>::iterator ix1 = find(v.begin(), v.end(), x1);
+	int i1 = distance(v.begin(), ix1);
+	vector<int>::iterator ix2 = find(v.begin(), v.end(), x2);
+	int i2 = distance(v.begin(), ix2);
+	v[i1] = x2;
+	v[i2] = x1;
+}
+
+int swap(vector<vector<int>> &v, vector<int> b, vector<int> c, int i, int x) {
+	vector<int> new_row;
+	vector<int> b_prime;
+	vector<int> c_prime;
+	for (int j = 0; j < v[i].size(); j++) {
+		b_prime = get_block(v, i, j);
+		c_prime = get_column(v, j);
+		if (count(b.begin(), b.end(), v[i][j]) == 0 && count(c.begin(), c.end(), v[i][j] == 0)) {
+			if (count(b_prime.begin(), b_prime.end(), x) == 0 && count(c_prime.begin(), c_prime.end(), x) == 0) {
+				swap_elements(v[i], x, v[i][j]);
+				return 1;
 			}
 		}
 	}
 	return 0;
 }
 
-bool swap(vector<int> b, vector<int> c, vector<int> &r, int j) {
-	bool legal = false;
-	for (int i = 0; i < j; i++) {
-		retun false;
+// sudoku algorithm
+int sudoku(vector<vector<int>> &v, vector<vector<int>> s) {
+	fill_grid(v, s);
+	for (int i = 0; i < num_rows; i++) {
+		vector<int> temp_row = get_row(v, i);
+		for (int j = 0; j < num_rows; j++) {
+			vector<int> temp_block = get_block(v, i, j);
+			vector<int> temp_col = get_column(v, j);
+			if (count(temp_block.begin(), temp_block.end(), v[i][j]) > 1 || count(temp_col.begin(), temp_col.end(), v[i][j]) > 1) {
+				swap(v, temp_block, temp_col, i, v[i][j]);
+			}
+		}
 	}
-	return legal;
+	return 0;
 }
 
-void write_grid(vector<vector<int>> &v, string f) {
+void write_grid(vector<vector<int>> &v, vector<vector<int>> &s, string f) {
 	string filename(file);
 	vector<string> lines;
 	string line;
@@ -169,20 +184,22 @@ void write_grid(vector<vector<int>> &v, string f) {
 			if (lines[i][1+3*j] != ' ') {
 				// convert ASCII to integer
 				v[i][j] = int(lines[i][1+3*j])-48;
+				s[i][j] = 1;
 			}
 		}
 	}
 }
 
 int main() {
-	// define 2D vector
+	// define 2D vectors
 	vector<vector<int>> grid(num_rows, {0, 0, 0, 0, 0, 0, 0, 0, 0});
+	vector<vector<int>> secured(num_rows, {0, 0, 0, 0, 0, 0, 0, 0, 0});
 	// prompt user
 	if (prompt(1, grid)) {
-		write_grid(grid, file);
+		write_grid(grid, secured, file);
 	}
 	// run algorithm
-	sudoku(grid);
+	sudoku(grid, secured);
 	// show solution
 	prompt(0, grid);
 }
