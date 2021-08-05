@@ -9,19 +9,12 @@
 using namespace std;
 
 // global variables
+// text file that will hold user input and will be altered with a solution
 string file = "Sudoku.txt";
+// 9x9 matrix
 int num_rows = 9;
 
-void concatenate(vector<int> &v1,vector<int> v2){
-	v1.insert(v1.end(), v2.begin(), v2.end());
-}
-
-int div_three(int x) {
-	int temp;
-	x % 3 == 0 ? temp = x : temp = abs(x % 3 - x);
-	return temp;
-}
-
+// erase elements in an integer vector that occure more than once
 vector<int> erase_duplicates(vector<int> &v) {
 	vector<int> d;
 	for (int x : v) {
@@ -32,20 +25,15 @@ vector<int> erase_duplicates(vector<int> &v) {
 	return d;
 }
 
-int gen(int i) {
-	// return random number, limited by a number, i
-	srand(time(0));
-	return rand() % i;
-}
 
-vector<int> get_block(vector<vector<int>> v, int i, int j) {
-	vector<int> b;
-	for (int k = div_three(i); k < div_three(i+3); k++) {
-		for (int l = div_three(j); l < div_three(j+3); l++) {
-			b.push_back(v[k][l]);
-		}
-	}
-	return b;
+// swap two elements in a vector by index
+void swap_elements(vector<int> &v, int x1, int x2) {
+	vector<int>::iterator ix1 = find(v.begin(), v.end(), x1);
+	int i1 = distance(v.begin(), ix1);
+	vector<int>::iterator ix2 = find(v.begin(), v.end(), x2);
+	int i2 = distance(v.begin(), ix2);
+	v[i1] = x2;
+	v[i2] = x1;
 }
 
 // extract column by index
@@ -56,7 +44,47 @@ vector<int> get_column(vector<vector<int>> v, int i) {
 	}
 	return c;
 }
-	
+
+
+// round down to the nearest multiple of 3 (0, 3, 6, 9)
+int div_three(int x) {
+	int temp;
+	x % 3 == 0 ? temp = x : temp = abs(x % 3 - x);
+	return temp;
+}
+
+
+// extract block by index
+vector<int> get_block(vector<vector<int>> v, int i, int j) {
+	vector<int> b;
+	for (int k = div_three(i); k < div_three(i+3); k++) {
+		for (int l = div_three(j); l < div_three(j+3); l++) {
+			b.push_back(v[k][l]);
+		}
+	}
+	return b;
+}
+
+// check for a candidate that is legal to swap within row i
+int swap(vector<vector<int>> &v, vector<int> b, vector<int> c, int i, int x) {
+	vector<int> new_row;
+	vector<int> b_prime;
+	vector<int> c_prime;
+	for (int j = 0; j < v[i].size(); j++) {
+		b_prime = get_block(v, i, j);
+		c_prime = get_column(v, j);
+		if (x != v[i][j]) {
+			if (count(b.begin(), b.end(), v[i][j]) == 0 && count(c.begin(), c.end(), v[i][j] == 0)) {
+				if (count(b_prime.begin(), b_prime.end(), x) == 0 && count(c_prime.begin(), c_prime.end(), x) == 0) {
+					swap_elements(v[i], x, v[i][j]);
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 //extract row by index
 vector<int> get_row(vector<vector<int>> v, int i) {
 	vector<int> r;
@@ -66,6 +94,13 @@ vector<int> get_row(vector<vector<int>> v, int i) {
 	return r;
 }
 
+
+// appened one vector onto the end of another
+void concatenate(vector<int> &v1,vector<int> v2){
+	v1.insert(v1.end(), v2.begin(), v2.end());
+}
+
+// fill each row without overriding user input
 void fill_grid(vector<vector<int>> &v, vector<vector<int>> s) {
 	srand(unsigned(time(0)));
 	vector<int> row;
@@ -86,72 +121,7 @@ void fill_grid(vector<vector<int>> &v, vector<vector<int>> s) {
 	}
 }
 
-void print_2d_vector(vector<vector<int>> v) {
-	for (int i = 0; i < num_rows; i++) {
-		for (int j = 0; j < num_rows; j++) {
-			cout << v[i][j] << "  ";
-		}
-		cout << endl;
-	}
-}
-
-void print_vector(vector<int> &v) {
-	for (int i = 0; i < v.size(); i++) {
-		cout << v[i] << " ";
-	}
-	cout << endl;
-}
-
-
-bool prompt(bool p, vector<vector<int>> v) {
-	// open file
-	ofstream file_write(file, std::ofstream::out);
-	if (file_write.is_open()) {
-		p ? file_write << "Replaces spaces with known values, save, and close." << "\n" : file_write << "One possible solution is:" << "\n";
-		for (int i = 0; i < num_rows; i++) {
-			for (int j = 0; j < num_rows; j++) {
-				p ? file_write << "[ ]" : file_write << '[' << v[i][j] << ']';
-			}
-			file_write << "\n";
-		}
-		file_write.close();
-		// write to notepad
-		string notepad_file = "notepad \"" + file + "\"";
-		system(notepad_file.c_str());
-		if (!file_write.is_open()) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void swap_elements(vector<int> &v, int x1, int x2) {
-	vector<int>::iterator ix1 = find(v.begin(), v.end(), x1);
-	int i1 = distance(v.begin(), ix1);
-	vector<int>::iterator ix2 = find(v.begin(), v.end(), x2);
-	int i2 = distance(v.begin(), ix2);
-	v[i1] = x2;
-	v[i2] = x1;
-}
-
-int swap(vector<vector<int>> &v, vector<int> b, vector<int> c, int i, int x) {
-	vector<int> new_row;
-	vector<int> b_prime;
-	vector<int> c_prime;
-	for (int j = 0; j < v[i].size(); j++) {
-		b_prime = get_block(v, i, j);
-		c_prime = get_column(v, j);
-		if (count(b.begin(), b.end(), v[i][j]) == 0 && count(c.begin(), c.end(), v[i][j] == 0)) {
-			if (count(b_prime.begin(), b_prime.end(), x) == 0 && count(c_prime.begin(), c_prime.end(), x) == 0) {
-				swap_elements(v[i], x, v[i][j]);
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
-
-// sudoku algorithm
+// find illegal number placement
 int sudoku(vector<vector<int>> &v, vector<vector<int>> s) {
 	fill_grid(v, s);
 	for (int i = 0; i < num_rows; i++) {
@@ -167,6 +137,7 @@ int sudoku(vector<vector<int>> &v, vector<vector<int>> s) {
 	return 0;
 }
 
+// read text file that holds user input
 void write_grid(vector<vector<int>> &v, vector<vector<int>> &s, string f) {
 	string filename(file);
 	vector<string> lines;
@@ -190,16 +161,40 @@ void write_grid(vector<vector<int>> &v, vector<vector<int>> &s, string f) {
 	}
 }
 
+// display notepad to user
+bool display(bool p, vector<vector<int>> v) {
+	// open file
+	ofstream file_write(file, std::ofstream::out);
+	if (file_write.is_open()) {
+		p ? file_write << "Replaces spaces with known values, save, and close." << "\n" : file_write << "One possible solution is:" << "\n";
+		for (int i = 0; i < num_rows; i++) {
+			for (int j = 0; j < num_rows; j++) {
+				p ? file_write << "[ ]" : file_write << '[' << v[i][j] << ']';
+			}
+			file_write << "\n";
+		}
+		file_write.close();
+		// write to notepad
+		// only compatible on windows
+		string notepad_file = "notepad \"" + file + "\"";
+		system(notepad_file.c_str());
+		if (!file_write.is_open()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 int main() {
 	// define 2D vectors
 	vector<vector<int>> grid(num_rows, {0, 0, 0, 0, 0, 0, 0, 0, 0});
 	vector<vector<int>> secured(num_rows, {0, 0, 0, 0, 0, 0, 0, 0, 0});
 	// prompt user
-	if (prompt(1, grid)) {
+	if (display(1, grid)) {
 		write_grid(grid, secured, file);
 	}
 	// run algorithm
 	sudoku(grid, secured);
 	// show solution
-	prompt(0, grid);
+	display(0, grid);
 }
